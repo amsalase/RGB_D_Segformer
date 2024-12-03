@@ -1,0 +1,219 @@
+
+=============
+== PyTorch ==
+=============
+
+NVIDIA Release 24.10 (build 114410972)
+PyTorch Version 2.5.0a0+e000cf0
+Container image Copyright (c) 2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+Copyright (c) 2014-2024 Facebook Inc.
+Copyright (c) 2011-2014 Idiap Research Institute (Ronan Collobert)
+Copyright (c) 2012-2014 Deepmind Technologies    (Koray Kavukcuoglu)
+Copyright (c) 2011-2012 NEC Laboratories America (Koray Kavukcuoglu)
+Copyright (c) 2011-2013 NYU                      (Clement Farabet)
+Copyright (c) 2006-2010 NEC Laboratories America (Ronan Collobert, Leon Bottou, Iain Melvin, Jason Weston)
+Copyright (c) 2006      Idiap Research Institute (Samy Bengio)
+Copyright (c) 2001-2004 Idiap Research Institute (Ronan Collobert, Samy Bengio, Johnny Mariethoz)
+Copyright (c) 2015      Google Inc.
+Copyright (c) 2015      Yangqing Jia
+Copyright (c) 2013-2016 The Caffe contributors
+All rights reserved.
+
+Various files include modifications (c) NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+1 wall  	82.755%
+2 floor 	91.456%
+3 cabinet	54.397%
+4 bed   	76.735%
+5 chair 	76.268%
+6 sofa  	60.487%
+7 table 	57.614%
+8 door  	51.745%
+9 window	57.297%
+10 bookshelf	39.623%
+11 picture	59.718%
+12 counter	43.981%
+13 blinds	34.135%
+14 desk 	27.447%
+15 shelves	12.789%
+16 curtain	64.750%
+17 dresser	52.489%
+18 pillow	46.437%
+19 mirror	54.727%
+20 floor mat	0.000%
+21 clothes	33.459%
+22 ceiling	76.474%
+23 books	39.437%
+24 fridge	59.538%
+25 tv   	70.030%
+26 paper	30.768%
+27 towel	44.283%
+28 shower curtain	0.039%
+29 box  	37.663%
+30 whiteboard	69.866%
+31 person	68.306%
+32 night stand	23.284%
+33 toilet	81.277%
+34 sink 	67.350%
+35 lamp 	50.131%
+36 bathtub	74.171%
+37 bag  	28.615%
+----------     mean_IoU	51.339%	freq_IoU	73.020%	mean_pixel_acc	62.710%	pixel_acc	83.496%
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+1 wall  	82.755%
+2 floor 	91.456%
+3 cabinet	54.397%
+4 bed   	76.735%
+5 chair 	76.268%
+6 sofa  	60.487%
+7 table 	57.614%
+8 door  	51.745%
+9 window	57.297%
+10 bookshelf	39.623%
+11 picture	59.718%
+12 counter	43.981%
+13 blinds	34.135%
+14 desk 	27.447%
+15 shelves	12.789%
+16 curtain	64.750%
+17 dresser	52.489%
+18 pillow	46.437%
+19 mirror	54.727%
+20 floor mat	0.000%
+21 clothes	33.459%
+22 ceiling	76.474%
+23 books	39.437%
+24 fridge	59.538%
+25 tv   	70.030%
+26 paper	30.768%
+27 towel	44.283%
+28 shower curtain	0.039%
+29 box  	37.663%
+30 whiteboard	69.866%
+31 person	68.306%
+32 night stand	23.284%
+33 toilet	81.277%
+34 sink 	67.350%
+35 lamp 	50.131%
+36 bathtub	74.171%
+37 bag  	28.615%
+----------     mean_IoU	51.339%	freq_IoU	73.020%	mean_pixel_acc	62.710%	pixel_acc	83.496%
+1 wall  	82.755%
+2 floor 	91.456%
+3 cabinet	54.397%
+4 bed   	76.735%
+5 chair 	76.268%
+6 sofa  	60.487%
+7 table 	57.614%
+8 door  	51.745%
+9 window	57.297%
+10 bookshelf	39.623%
+11 picture	59.718%
+12 counter	43.981%
+13 blinds	34.135%
+14 desk 	27.447%
+15 shelves	12.789%
+16 curtain	64.750%
+17 dresser	52.489%
+18 pillow	46.437%
+19 mirror	54.727%
+20 floor mat	0.000%
+21 clothes	33.459%
+22 ceiling	76.474%
+23 books	39.437%
+24 fridge	59.538%
+25 tv   	70.030%
+26 paper	30.768%
+27 towel	44.283%
+28 shower curtain	0.039%
+29 box  	37.663%
+30 whiteboard	69.866%
+31 person	68.306%
+32 night stand	23.284%
+33 toilet	81.277%
+34 sink 	67.350%
+35 lamp 	50.131%
+36 bathtub	74.171%
+37 bag  	28.615%
+----------     mean_IoU	51.339%	freq_IoU	73.020%	mean_pixel_acc	62.710%	pixel_acc	83.496%
+MASTER_ADDR: 127.0.0.1
+MASTER_PORT: 29500
+1 wall  	82.755%
+2 floor 	91.456%
+3 cabinet	54.397%
+4 bed   	76.735%
+5 chair 	76.268%
+6 sofa  	60.487%
+7 table 	57.614%
+8 door  	51.745%
+9 window	57.297%
+10 bookshelf	39.623%
+11 picture	59.718%
+12 counter	43.981%
+13 blinds	34.135%
+14 desk 	27.447%
+15 shelves	12.789%
+16 curtain	64.750%
+17 dresser	52.489%
+18 pillow	46.437%
+19 mirror	54.727%
+20 floor mat	0.000%
+21 clothes	33.459%
+22 ceiling	76.474%
+23 books	39.437%
+24 fridge	59.538%
+25 tv   	70.030%
+26 paper	30.768%
+27 towel	44.283%
+28 shower curtain	0.039%
+29 box  	37.663%
+30 whiteboard	69.866%
+31 person	68.306%
+32 night stand	23.284%
+33 toilet	81.277%
+34 sink 	67.350%
+35 lamp 	50.131%
+36 bathtub	74.171%
+37 bag  	28.615%
+----------     mean_IoU	51.339%	freq_IoU	73.020%	mean_pixel_acc	62.710%	pixel_acc	83.496%

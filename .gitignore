@@ -1,0 +1,10 @@
+*.pth
+entrenamiento.sh.err
+entrenamiento.sh.out
+entrenamiento.sh.old.err
+entrenamiento.sh.old.out
+evaluacion.sh.err
+evaluacion.sh.old.err
+*.jpg
+
+

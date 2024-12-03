@@ -90,7 +90,7 @@ def add_path(path):
         sys.path.insert(0, path)
 add_path(osp.join(C.rgbx_dir))
 
-C.log_dir = osp.abspath('log_' + C.dataset_name + '_' + C.backbone + '_dp')
+C.log_dir = osp.abspath('log_' + C.dataset_name + '_' + C.backbone + '_dp_all_stages')
 C.tb_dir = osp.abspath(osp.join(C.log_dir, "tb"))
 C.log_dir_link = C.log_dir
 C.checkpoint_dir = osp.abspath(osp.join(C.log_dir, "checkpoint"))

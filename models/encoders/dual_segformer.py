@@ -70,21 +70,10 @@ class Mlp(nn.Module):
         x = self.drop(x)
         return x
 
-class CrissCrossAttention(nn.Module):
-    def __init__(
-        self,
-        dim,
-        num_heads=8,
-        qkv_bias=False,
-        qk_scale=None,
-        attn_drop=0.0,
-        proj_drop=0.0,
-        sr_ratio=1,
-    ):
+class Attention(nn.Module):
+    def __init__(self, dim, num_heads=8, qkv_bias=False, qk_scale=None, attn_drop=0.0, proj_drop=0.0, sr_ratio=1):
         super().__init__()
-        assert (
-            dim % num_heads == 0
-        ), f"dim {dim} should be divided by num_heads {num_heads}."
+        assert dim % num_heads == 0, f"dim {dim} should be divided by num_heads {num_heads}."
 
         self.dim = dim
         self.num_heads = num_heads
@@ -121,152 +110,85 @@ class CrissCrossAttention(nn.Module):
 
     def forward(self, x, H, W):
         B, N, C = x.shape
-        q_h = self.q(x)
-        q_h = q_h.reshape(B, H, W, C)
-        q_h = q_h.permute(0, 2, 1, 3)
-        q_h = q_h.contiguous()
-        q_h = q_h.view(B * W, H, -1)
-        q_h = q_h.reshape(B * W, H, self.num_heads, C // self.num_heads)
-        q_h = q_h.permute(0, 2, 1, 3) # (B*W,N,H,C)
-        q_v = self.q(x)
-        q_v = q_v.reshape(B, H, W, C)
-        q_v = q_v.contiguous()
-        q_v = q_v.view(B * H, W, -1)
-        q_v = q_v.reshape(B * H, W, self.num_heads, C // self.num_heads)
-        q_v = q_v.permute(0, 2, 1, 3) # (B*H,N,W,C)
+        if self.dim == 64:
+            q_h = self.q(x)
+            q_h = q_h.reshape(B, H, W, C).permute(0, 2, 1, 3).contiguous().view(B * W, H, -1)
+            q_h = q_h.reshape(B * W, H, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3) # (B*W,N,H,C)
+            q_v = self.q(x)
+            q_v = q_v.reshape(B, H, W, C).contiguous().view(B * H, W, -1)
+            q_v = q_v.reshape(B * H, W, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3) # (B*H,N,W,C)
 
-        if self.sr_ratio > 1:
-            x_ = x.permute(0, 2, 1)
-            x_ = x_.reshape(B, C, H, W)
-            x_ = self.sr(x_)
-            _, _, H_, W_ = x_.shape
-            x_ = x_.reshape(B, C, -1)
-            x_ = x_.permute(0, 2, 1)
-            x_ = self.norm(x_)
-            kv = self.kv(x_)
-            kv = kv.reshape(B, -1, 2, C)
-            kv = kv.permute(2, 0, 1, 3).reshape(2, B, H_, W_, C)
-            kv_h = torch.nn.functional.interpolate(
-                kv.permute(0, 1, 2, 4, 3).reshape(-1, W_).unsqueeze(1),
-                size=W,
-                mode="linear",
-                align_corners=False)  # (2xBxH_xC, W)
-            kv_h = (
-                    kv_h.squeeze(1)
-                    .reshape(2, B, H_, C, -1)
-                    .permute(0, 1, 4, 2, 3) # (2,B,W,H_,C)  
-                    .contiguous()
-                    .view(2, B* W, H_, C)
-                    .reshape(2, B*W, H_, self.num_heads, C // self.num_heads)
-                    .permute(0, 1, 3, 2, 4)) 
+            if self.sr_ratio > 1:
+                x_ = x.permute(0, 2, 1).reshape(B, C, H, W)
+                x_ = self.sr(x_)
+                _, _, H_, W_ = x_.shape
+                x_ = x_.reshape(B, C, -1).permute(0, 2, 1)
+                x_ = self.norm(x_)
+                kv = self.kv(x_)
+                kv = kv.reshape(B, -1, 2, C).permute(2, 0, 1, 3).reshape(2, B, H_, W_, C)
+                kv_h = torch.nn.functional.interpolate( kv.permute(0, 1, 2, 4, 3).reshape(-1, W_).unsqueeze(1),
+                                                        size=W,
+                                                        mode="linear",
+                                                        align_corners=False)  # (2xBxH_xC, W)
+                kv_h = kv_h.squeeze(1).reshape(2, B, H_, C, -1).permute(0, 1, 4, 2, 3).contiguous() # (2,B,W,H_,C)
+                kv_h = kv_h.view(2, B* W, H_, C).reshape(2, B*W, H_, self.num_heads, C // self.num_heads).permute(0, 1, 3, 2, 4) 
+                kv_v = torch.nn.functional.interpolate(kv.permute(0, 1, 3, 4, 2).reshape(-1, H_).unsqueeze(1),
+                                                        size=H,
+                                                        mode="linear",
+                                                        align_corners=False)  # (2xBxW_xC, H)
+                kv_v = kv_v.squeeze(1).reshape(2, B, W_, C, -1).permute(0, 1, 4, 2, 3).contiguous() # (2,B,H,W_,C)
+                kv_v = kv_v.view(2, B*H, W_, C).reshape(2, B*H, W_, self.num_heads, C // self.num_heads).permute(0, 1, 3, 2, 4)
             
-            kv_v = torch.nn.functional.interpolate(
-                kv.permute(0, 1, 3, 4, 2).reshape(-1, H_).unsqueeze(1),
-                size=H,
-                mode="linear",
-                align_corners=False,)  # (2xBxW_xC, H)
-            kv_v = (
-                    kv_v.squeeze(1)
-                    .reshape(2, B, W_, C, -1)
-                    .permute(0, 1, 4, 2, 3) # (2,B,H,W_,C)
-                    .contiguous()
-                    .view(2, B*H, W_, C)
-                    .reshape(2, B*H, W_, self.num_heads, C // self.num_heads)
-                    .permute(0, 1, 3, 2, 4))
-            
-        else:
-            kv = self.kv(x)
-            kv = kv.reshape(B, -1, 2, C)
-            kv = kV.permute(2, 0, 1, 3)
+            else:
+
+                kv = self.kv(x).reshape(B, -1, 2, C).permute(2, 0, 1, 3).reshape(2, B, H, W, C)
+                kv_h = kv.permute(0, 1, 3, 2, 4).view(2, B* W, H, C).reshape(2, B*W, H, self.num_heads, C // self.num_heads).permute(0, 1, 3, 2, 4) 
+                kv_v = kv.view(2, B*H, W, C).reshape(2, B*H, W_, self.num_heads, C // self.num_heads).permute(0, 1, 3, 2, 4)
         
-        k_h, v_h = kv_h[0], kv_h[1] # (B*W,N,H_,C)
-        k_v, v_v = kv_v[0], kv_v[1] # (B*H,N,W_,C)
+            k_h, v_h = kv_h[0], kv_h[1] # (B*W,N,H,C)
+            k_v, v_v = kv_v[0], kv_v[1] # (B*H,N,W,C)
 
-        energy_h = (q_h @ k_h.transpose(-2,-1)) * self.scale # (B*W,N,H,H_)
-        energy_v = (q_v @ k_v.transpose(-2,-1)) * self.scale # (B*H,N,W,W_)
+            energy_h = (q_h @ k_h.transpose(-2,-1)) * self.scale # (B*W,N,H,H_)
+            energy_v = (q_v @ k_v.transpose(-2,-1)) * self.scale # (B*H,N,W,W_)
 
-        energy_h = energy_h.reshape(B, W, self.num_heads, H, H_).permute(0, 3, 2, 1, 4) #(B,H,N,W,H_)
-        energy_v = energy_v.reshape(B, H, self.num_heads, W, W_) #(B,H,N,W,W_)
+            energy_h = energy_h.reshape(B, W, self.num_heads, H, H_).permute(0, 3, 2, 1, 4) #(B,H,N,W,H_)
+            energy_v = energy_v.reshape(B, H, self.num_heads, W, W_) #(B,H,N,W,W_)
 
-        attn = torch.cat([energy_h, energy_v], 4)
-        attn = attn.softmax(dim=-1)
-        attn = self.attn_drop(attn)
+            attn = torch.cat([energy_h, energy_v], 4)
+            attn = attn.softmax(dim=-1)
+            attn = self.attn_drop(attn)
 
-        attn_h = attn[:, :, :, :, 0:H_]  
-        attn_h = attn_h.permute(0, 3, 2, 1, 4).reshape( B* W, self.num_heads, H, -1) # (B*W,N,H,H_)
-        attn_v = attn[:, :, :, :, H_:H_+W_]
-        attn_v = attn_v.reshape(B* H, self.num_heads, W, -1) # (B*H,N,W,W_)
+            attn_h = attn[:, :, :, :, 0:H_]  
+            attn_h = attn_h.permute(0, 3, 2, 1, 4).reshape( B* W, self.num_heads, H, -1) # (B*W,N,H,H_)
+            attn_v = attn[:, :, :, :, H_:H_+W_]
+            attn_v = attn_v.reshape(B* H, self.num_heads, W, -1) # (B*H,N,W,W_)
 
-        out_h = attn_h @ v_h # (B*W,N,H,C)
-        out_v = attn_v @ v_v # (B*H,N,W,C)
+            out_h = attn_h @ v_h # (B*W,N,H,C)
+            out_v = attn_v @ v_v # (B*H,N,W,C)
 
-        out_h = out_h.reshape(B, W, self.num_heads, H, -1).permute(0, 3, 1, 2, 4).reshape(B, N, C)
-        out_v = out_v.reshape(B, H, self.num_heads, W, -1).permute(0, 1, 3, 2, 4).reshape(B, N, C)
+            out_h = out_h.reshape(B, W, self.num_heads, H, -1).permute(0, 3, 1, 2, 4).reshape(B, N, C)
+            out_v = out_v.reshape(B, H, self.num_heads, W, -1).permute(0, 1, 3, 2, 4).reshape(B, N, C)
 
-        x = out_h + out_v
-
-        return x
-
-class Attention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0., sr_ratio=1):
-        super().__init__()
-        assert dim % num_heads == 0, f"dim {dim} should be divided by num_heads {num_heads}."
-
-        self.dim = dim
-        self.num_heads = num_heads
-        head_dim = dim // num_heads
-        self.scale = qk_scale or head_dim ** -0.5
-
-        # Linear embedding
-        self.q = nn.Linear(dim, dim, bias=qkv_bias)
-        self.kv = nn.Linear(dim, dim * 2, bias=qkv_bias)
-        self.attn_drop = nn.Dropout(attn_drop)
-        self.proj = nn.Linear(dim, dim)
-        self.proj_drop = nn.Dropout(proj_drop)
-
-        self.sr_ratio = sr_ratio
-        if sr_ratio > 1:
-            self.sr = nn.Conv2d(dim, dim, kernel_size=sr_ratio, stride=sr_ratio)
-            self.norm = nn.LayerNorm(dim)
-
-        self.apply(self._init_weights)
-
-    def _init_weights(self, m):
-        if isinstance(m, nn.Linear):
-            trunc_normal_(m.weight, std=.02)
-            if isinstance(m, nn.Linear) and m.bias is not None:
-                nn.init.constant_(m.bias, 0)
-        elif isinstance(m, nn.LayerNorm):
-            nn.init.constant_(m.bias, 0)
-            nn.init.constant_(m.weight, 1.0)
-        elif isinstance(m, nn.Conv2d):
-            fan_out = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-            fan_out //= m.groups
-            m.weight.data.normal_(0, math.sqrt(2.0 / fan_out))
-            if m.bias is not None:
-                m.bias.data.zero_()
-
-    def forward(self, x, H, W):
-        B, N, C = x.shape
-        # B N C -> B N num_head C//num_head -> B C//num_head N num_heads
-        q = self.q(x).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3) 
-
-        if self.sr_ratio > 1:
-            x_ = x.permute(0, 2, 1).reshape(B, C, H, W) 
-            x_ = self.sr(x_).reshape(B, C, -1).permute(0, 2, 1) 
-            x_ = self.norm(x_)
-            kv = self.kv(x_).reshape(B, -1, 2, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4) 
+            x = out_h + out_v
         else:
-            kv = self.kv(x).reshape(B, -1, 2, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4) 
-        k, v = kv[0], kv[1]
+            q = self.q(x).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3) 
 
-        attn = (q @ k.transpose(-2, -1)) * self.scale
-        attn = attn.softmax(dim=-1)
-        attn = self.attn_drop(attn)
+            if self.sr_ratio > 1:
+                x_ = x.permute(0, 2, 1).reshape(B, C, H, W) 
+                x_ = self.sr(x_).reshape(B, C, -1).permute(0, 2, 1) 
+                x_ = self.norm(x_)
+                kv = self.kv(x_).reshape(B, -1, 2, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4) 
+            else:
+                kv = self.kv(x).reshape(B, -1, 2, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4) 
+            k, v = kv[0], kv[1]
 
-        x = (attn @ v).transpose(1, 2).reshape(B, N, C)
-        x = self.proj(x)
-        x = self.proj_drop(x)
+            attn = (q @ k.transpose(-2, -1)) * self.scale
+            attn = attn.softmax(dim=-1)
+            attn = self.attn_drop(attn)
+
+            x = (attn @ v).transpose(1, 2).reshape(B, N, C)
+            x = self.proj(x)
+            x = self.proj_drop(x)
 
         return x
 
@@ -281,10 +203,6 @@ class Block(nn.Module):
         self.dim = dim
         self.norm1 = norm_layer(dim)
         self.attn = Attention(
-            dim,
-            num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale,
-            attn_drop=attn_drop, proj_drop=drop, sr_ratio=sr_ratio)
-        self.cr_cr_attn = Attention(
             dim,
             num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale,
             attn_drop=attn_drop, proj_drop=drop, sr_ratio=sr_ratio)
@@ -312,13 +230,7 @@ class Block(nn.Module):
                 m.bias.data.zero_()
 
     def forward(self, x, H, W):
-        #if self.dim == 64:
-        #    x = x + self.drop_path(self.cr_cr_attn(self.norm1(x), H, W))
-        #else:
-        #    x = x + self.drop_path(self.attn(self.norm1(x), H, W))
-        #x = x + self.drop_path(self.mlp(self.norm2(x), H, W))
-
-        x = x + self.drop_path(self.cr_cr_attn(self.norm1(x), H, W))
+        x = x + self.drop_path(self.attn(self.norm1(x), H, W))
         x = x + self.drop_path(self.mlp(self.norm2(x), H, W))
 
         return x

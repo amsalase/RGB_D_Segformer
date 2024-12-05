@@ -3,7 +3,7 @@
 docker run --gpus all --shm-size=512g --ipc=host --name pytorchamsalas -p 8888:8888 \
 		-v /NAS/home/asalas/:/workspace \
 		-e  HOST_PERMS="$(id -u):$(id -g)" \
-		amsalaspytorch /bin/bash -c "export OMP_NUM_THREADS=6 && \
+									amsalaspytorch /bin/bash -c "export OMP_NUM_THREADS=6 && \
                     				export NCCL_DEBUG=INFO && \
                     				export NCCL_P2P_DISABLE=1 && \
                     				export NCCL_IB_DISABLE=1 && \

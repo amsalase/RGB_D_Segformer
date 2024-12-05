@@ -5,6 +5,11 @@ entrenamiento.sh.old.err
 entrenamiento.sh.old.out
 evaluacion.sh.err
 evaluacion.sh.old.err
+evaluacion_all_stages.sh.err
+entrenamiento_all_stages.sh.err
+entrenamiento_all_stages.sh.out
+*.pyc
+/models/encoders/__pycache__/
 *.jpg
 
 
